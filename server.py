@@ -144,8 +144,8 @@ def createTable():
                    ",FK->null" + "-->" + columnMetas + "\n")
         file.close()
         file = open("db1.txt", "a")
-        file.write("\n")
         file.write(tableName + "-->")
+        file.write("\n")
         file.close()
 
     return "Table Created Successfully"
