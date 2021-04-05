@@ -119,7 +119,7 @@ def updateTable(rowList, tableName, file):
 
 @app.route('/')
 def hello():
-    return "Hello World updated!"
+    return "Hello World updated 2!"
 
 
 @app.route('/state')
