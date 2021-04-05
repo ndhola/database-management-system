@@ -6,6 +6,16 @@ app = Flask(__name__)
 app.config["DEBUG"] = True
 
 
+def getStateOfDatabase():
+    file = open("db1.txt", "r")
+    state = []
+    for line in file:
+        tableName = line.split("-->")[0]
+        totalRows = len(line.split("-->")[1].split("|"))
+        state.append("Table: " + tableName + " Total Rows: " + str(totalRows))
+    return state
+
+
 def rawToMeta(tableName):
     file = open("dbmetadata.txt", "r")
     for line in file:
@@ -108,6 +118,12 @@ def updateTable(rowList, tableName, file):
 @app.route('/')
 def hello():
     return "Hello World!"
+
+
+@app.route('/state')
+def getState():
+    data = getStateOfDatabase()
+    return flask.jsonify(data)
 
 
 @app.route('/create', methods=['POST'])
