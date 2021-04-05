@@ -1,6 +1,0 @@
-customer1,PK->0,FK->null-->customer_name->string,25|customer_address->string,25
-customer2,PK->0,FK->null-->customer_name->string,25|customer_address->string,25
-student,PK->0,FK->null-->studentId->string,25|studentName->string,25|studentEmail->string,25
-faculty,PK->0,FK->null-->facultyId->int,25|facultyName->string,25|facultyEmail->string,25
-course,PK->0,FK->null-->courseId->int,25|courseName->string,25|courseRating->string,25
-grade,PK->0,FK->null-->courseId->int,25|studentId->int,25|grade->string,25
