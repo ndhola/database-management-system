@@ -73,7 +73,7 @@ def selectQuery(query):
 
 def insertQuery(query):
     matchGroups = re.match(
-        "INSERT INTO ([A-Za-z0-9_]+)\sVALUES\s\(([a-z,A-Z0-9\s']+)\)", query)
+        "INSERT INTO ([A-Za-z0-9_]+)\sVALUES\s\(([a-z,A-Z0-9\@\.\s']+)\)", query)
     print(matchGroups.group(1))
     table_name = matchGroups.group(1)
     columnValues = matchGroups.group(2)
@@ -156,7 +156,7 @@ isValid = json.loads(response.text)["isValid"]
 
 if isValid:
     query1 = "CREATE TABLE customer2 (customer_name string 25 PK, customer_address string 25)"
-    query = "SELECT * FROM customer1"
+    query = "INSERT INTO course VALUES (3, Communication skills, 5)"
     query2 = "UPDATE customer SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
     query2 = "INSERT INTO customer1 VALUES (Jemis6, 140 Gautam Park)"
     queryType = identifyQuery(query)
@@ -170,3 +170,33 @@ if isValid:
         print("Invalid Query Type")
 else:
     print("Invalid User")
+
+# CREATE TABLE student (studentId string 25 PK, studentName string 25)
+# CREATE TABLE faculty (facultyId int 25 PK, facultyName string 25, facultyEmail string 25)
+# CREATE TABLE course (courseId int 25 PK, courseName string 25, courseRating string 25)
+# CREATE TABLE grade (courseId int 25 PK, studentId int 25, grade string 25)
+
+# INSERT INTO student VALUES (1, jemis, jemisgmailcom)
+# INSERT INTO student VALUES (2, nikunj, nikunjgmailcom)
+# INSERT INTO student VALUES (3, helly, hellygmailcom)
+# INSERT INTO faculty VALUES (1, robert, robertgmailcom)
+# INSERT INTO faculty VALUES (2, saurabh, saurabhgmailcom)
+# INSERT INTO faculty VALUES (3, andrew, andrewgmailcom)
+
+
+# SELECT * FROM student
+# SELECT * FROM faculty
+
+# UPDATE student SET studentName= Andrew,studentEmail= Andrewgmail WHERE studentId=1
+
+# INSERT INTO course VALUES (1, Advance software development, 4)
+# INSERT INTO course VALUES (2, Data warehouse, 4)
+# INSERT INTO course VALUES (3, Communication skills, 5)
+
+
+# INSERT INTO grade VALUES (101, 1, Advance software development, 4)
+# INSERT INTO grade VALUES (102, 2, Data warehouse, 4)
+# INSERT INTO grade VALUES (103, 3, Communication skills, 5)
+
+
+# CREATE TABLE grade (gradeId int 25 PK, courseId int 25, studentId int 25, grade string 25)

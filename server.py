@@ -47,6 +47,8 @@ def rawToData(tableName):
         rows = line.split("-->")[1].split("|")
         rowList = []
         if existingTableName == tableName:
+            if rows[0] == "\n" or rows[0] == '':
+                return False
             for row in rows:
                 rowValues = row.split(",")
                 rowList.append(rowValues)
@@ -64,11 +66,11 @@ def dataToRaw(tableName, rowList):
     for line in file:
         existingTableName = line.split("-->")[0]
         if existingTableName == tableName:
-            newLine = tableName + "-->" + rowList
-            newContent += newLine
+            newLine = tableName + "-->" + rowList.replace("\n", "")
+            newContent += newLine + "\n"
         else:
-            newContent += line
-    print(newContent)
+            newContent += line.replace("\n", "") + "\n"
+    print("newContent", newContent)
     file.close()
     file = open("db1.txt", "w+")
     file.write(newContent)
@@ -139,6 +141,10 @@ def createTable():
     else:
         file.write(tableName + ",PK->" + str(primaryKey) +
                    ",FK->null" + "-->" + columnMetas + "\n")
+        file.close()
+        file = open("db1.txt", "a")
+        file.write("\n")
+        file.write(tableName + "-->")
         file.close()
 
     return "Table Created Successfully"
@@ -276,12 +282,18 @@ def insertQuery():
     if len(columnList) != len(availableColoumns):
         return "Column count is not matching with table: " + tableName
 
-    for row in data:
-        if row[primaryKeyIndex] == columnList[primaryKeyIndex]:
-            return "Primary key must be unique"
-
-    data.append(columnList)
     print("data", data)
+
+    if data:
+        for row in data:
+            print("existing data: ",
+                  row[primaryKeyIndex], columnList[primaryKeyIndex])
+            if row[primaryKeyIndex] == columnList[primaryKeyIndex]:
+                return "Primary key must be unique"
+        data.append(columnList)
+    else:
+        data = [columnList]
+
     dataToRaw(tableName, data)
 
     return "Record Inserted"
