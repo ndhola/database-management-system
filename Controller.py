@@ -5,7 +5,7 @@ import time
 
 INVALID_QUERY = "invalid query"
 
-REMOTE_URL = "http://35.225.117.133"
+REMOTE_URL = "http://127.0.0.1:5000"
 
 supportedQuery = ["SELECT", "UPDATE", "CREATE", "DELETE", "INSERT"]
 
@@ -123,13 +123,33 @@ def createQuery(query):
     return response.text
 
 
+def deleteQuery(query):
+    matchGroups = re.match(
+        "DELETE FROM ([\w]+) WHERE \s?([\w\s=,'\"]+)", query)
+    print(matchGroups.group(1))
+    tableName = matchGroups.group(1)
+    condition = matchGroups.group(2)
+    columnName = condition.split("=")[0].strip(" ")
+    columnValue = condition.split("=")[1].strip(" ")
+
+    deletedata = {
+        "tableName": tableName,
+        "columnName": columnName,
+        "columnValue": columnValue
+    }
+
+    response = requests.post(REMOTE_URL + "/delete", json=deletedata)
+    return response.text
+
+
 def runParser(queryType, query):
     # "SELECT\s([\w,*\*?]+)\sFROM\s(\w*)\s?(WHERE)?\s?(\w+=*)?"
     switcher = {
         "SELECT": lambda: selectQuery(query),
         "UPDATE": lambda: updateQuery(query),
         "CREATE": lambda: createQuery(query),
-        "INSERT": lambda: insertQuery(query)
+        "INSERT": lambda: insertQuery(query),
+        "DELETE": lambda: deleteQuery(query)
     }
     return switcher.get(queryType, INVALID_QUERY)
 
@@ -156,8 +176,8 @@ response = requests.post(REMOTE_URL + "/validate", json=data)
 isValid = json.loads(response.text)["isValid"]
 
 if isValid:
-    query1 = "CREATE TABLE customer2 (customer_name string 25 PK, customer_address string 25)"
-    query = "CREATE TABLE customer6 (customer_name string 25 PK, customer_address string 25)"
+    query = "CREATE TABLE customer3 (customer_name string 25 PK, customer_address string 25)"
+    query1 = "DELETE FROM student WHERE studentName= Andrew"
     query2 = "UPDATE customer SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
     query2 = "INSERT INTO customer1 VALUES (Jemis6, 140 Gautam Park)"
     queryType = identifyQuery(query)

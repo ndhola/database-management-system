@@ -289,7 +289,34 @@ def insertQuery():
     return "Record Inserted"
 
 
-@ app.route('/validate', methods=['POST'])
+@app.route('/delete', methods=['POST'])
+def deleteQuery():
+    request_data = request.get_json()
+    tableName = request_data["tableName"]
+    conditionColumn = request_data["columnName"]
+    conditionValue = request_data["columnValue"]
+
+    metaData = rawToMeta(tableName)
+    data = rawToData(tableName)
+    if metaData:
+        availableColumns = list(metaData["columns"].keys())
+
+        if conditionColumn not in availableColumns:
+            return "Invalid condition column name: " + conditionColumn
+        else:
+            conditionIndex = availableColumns.index(conditionColumn)
+
+        data = list(
+            filter(lambda row: row[conditionIndex] != conditionValue, data))
+        print(len(data))
+        dataToRaw(tableName, data)
+    else:
+        return "Table not found with name: " + tableName
+
+    return "dummy"
+
+
+@app.route('/validate', methods=['POST'])
 def isUserValid():
     isValid = False
     request_data = request.get_json()
