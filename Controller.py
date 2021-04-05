@@ -2,6 +2,7 @@ import re
 import requests
 import json
 import time
+from passlib.hash import bcrypt
 
 INVALID_QUERY = "invalid query"
 
@@ -174,26 +175,30 @@ data = {
     "password": password
 }
 
-response = requests.post(LOCAL_URL + "/validate", json=data)
+try:
+    response = requests.post(LOCAL_URL + "/validate", json=data)
 
-isValid = json.loads(response.text)["isValid"]
+    isValid = json.loads(response.text)["isValid"]
 
-if isValid:
-    query = "CREATE TABLE customer3 (customer_name string 25 PK, customer_address string 25)"
-    query1 = "DELETE FROM student WHERE studentName= Andrew"
-    query2 = "UPDATE customer SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
-    query2 = "INSERT INTO customer1 VALUES (Jemis6, 140 Gautam Park)"
-    queryType = identifyQuery(query)
-    if(queryType != INVALID_QUERY):
-        startTime = time.time()
-        processQuery = runParser(queryType, query)
-        msg = processQuery()
-        executionTime = time.time() - startTime
-        printLog(query, msg, executionTime)
+    if isValid:
+        query = "CREATE TABLE customer3 (customer_name string 25 PK, customer_address string 25)"
+        query1 = "DELETE FROM student WHERE studentName= Andrew"
+        query2 = "UPDATE customer SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
+        query2 = "INSERT INTO customer1 VALUES (Jemis6, 140 Gautam Park)"
+        queryType = identifyQuery(query)
+        if(queryType != INVALID_QUERY):
+            startTime = time.time()
+            processQuery = runParser(queryType, query)
+            msg = processQuery()
+            executionTime = time.time() - startTime
+            printLog(query, msg, executionTime)
+        else:
+            print("Invalid Query Type")
     else:
-        print("Invalid Query Type")
-else:
-    print("Invalid User")
+        print("ERROR: Invalid User")
+except Exception as exception:
+    print("ERROR: Server is not Running-->")
+    print(exception)
 
 # CREATE TABLE student (studentId string 25 PK, studentName string 25)
 # CREATE TABLE faculty (facultyId int 25 PK, facultyName string 25, facultyEmail string 25)

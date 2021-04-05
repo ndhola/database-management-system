@@ -2,11 +2,11 @@
   "users": [
     {
       "username": "user1",
-      "password": "admin"
+      "password": "$2b$12$h6WpL1u5jTeOHfPyblIjNOE99Eg0/1.Zn1fPr.LR32ZqoyMR1u1ka"
     },
     {
       "username": "user2",
-      "password": "admin"
+      "password": "$2b$12$khdGZ0U/GNRENiiaUOqev.DVzBdLNCB9xda7TgQEtm6GTG3tJHW1u"
     }
   ]
 }

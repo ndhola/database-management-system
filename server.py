@@ -1,6 +1,7 @@
 from flask import Flask, request
 import flask
 import json
+from passlib.hash import bcrypt
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
@@ -327,8 +328,7 @@ def isUserValid():
     password = request_data["password"]
 
     for user in users:
-        print(user["username"])
-        if(username == user["username"] and password == user["password"]):
+        if(username == user["username"] and bcrypt.verify(password, user["password"])):
             isValid = True
 
     validity = {
