@@ -5,7 +5,7 @@ import time
 
 INVALID_QUERY = "invalid query"
 
-REMOTE_URL = "http://127.0.0.1:5000"
+REMOTE_URL = "http://35.225.117.133"
 
 supportedQuery = ["SELECT", "UPDATE", "CREATE", "DELETE", "INSERT"]
 
@@ -157,7 +157,7 @@ isValid = json.loads(response.text)["isValid"]
 
 if isValid:
     query1 = "CREATE TABLE customer2 (customer_name string 25 PK, customer_address string 25)"
-    query = "UPDATE student SET studentName= Andrew,studentEmail= Andrewgmail WHERE studentd=1"
+    query = "CREATE TABLE customer5 (customer_name string 25 PK, customer_address string 25)"
     query2 = "UPDATE customer SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
     query2 = "INSERT INTO customer1 VALUES (Jemis6, 140 Gautam Park)"
     queryType = identifyQuery(query)
