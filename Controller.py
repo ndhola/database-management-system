@@ -19,7 +19,7 @@ def identifyQuery(query):
 
 def updateQuery(query):
     matchGroups = re.match(
-        "UPDATE\s([\w]+)\sSET\s([\w\s=,'\"]+)+\s?(WHERE)\s?([\w\s=,'\"]+)", query)
+        "UPDATE\s([\w]+)\sSET\s([\w\s=,'\"]+)+\s?(WHERE)\s?([a-zA-Z0-9]+=[a-zA-Z0-9])", query)
     if matchGroups.group(3) == "WHERE" and matchGroups.group(2) == None:
         return "Condition is missing"
 
@@ -42,7 +42,8 @@ def updateQuery(query):
         "condition": condition
     }
     print("data", data)
-    return "In Progress"
+    response = requests.post(REMOTE_URL + "/update", json=data)
+    return response.text
 
 
 def selectQuery(query):
@@ -156,7 +157,7 @@ isValid = json.loads(response.text)["isValid"]
 
 if isValid:
     query1 = "CREATE TABLE customer2 (customer_name string 25 PK, customer_address string 25)"
-    query = "INSERT INTO course VALUES (3, Communication skills, 5)"
+    query = "UPDATE student SET studentName= Andrew,studentEmail= Andrewgmail WHERE studentd=1"
     query2 = "UPDATE customer SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
     query2 = "INSERT INTO customer1 VALUES (Jemis6, 140 Gautam Park)"
     queryType = identifyQuery(query)

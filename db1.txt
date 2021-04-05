@@ -1,5 +1,5 @@
 customer1-->nikunj,Surat|nikunj,column2value|column1value,column2value|column1value,column2value|Jemis, 140 Gautam Park|Jemis, 140 Gautam Park|Jemis,140 Gautam Park|Jemis1,140 Gautam Park|Jemis2,140 Gautam Park|Jemis3,140 Gautam Park|Jemis4,140 Gautam Park|Jemis5,140 Gautam Park|Jemis6,140 Gautam Park
-student-->1,jemis,jemis@gmail.com|2,nikunj,nikunj@gmail.com|3,helly,helly@gmail.com|4,helly2,helly2@gmail.com
+student-->1,Andrew,Andrewgmail|2,nikunj,nikunj@gmail.com|3,helly,helly@gmail.com|4,helly2,helly2@gmail.com
 faculty-->1,robert,robertgmailcom|2,saurabh,saurabh@gmail.com|3,andrew,andrew@gmail.com
 course-->1,Advance software development,4|2,Data warehouse,4|3,Communication skills,5
 grade-->

@@ -157,54 +157,44 @@ def updateQuery():
     columnList = request_data["column_list"]
     condition = request_data["condition"]
 
-    metaData = isTableExist(tableName)
+    metaData = rawToMeta(tableName)
+    data = rawToData(tableName)
 
     if metaData:
-        columnIndexes = {}
-        for column in columnList.keys():
-            print("column", column)
-            index = verifyColumn(column.strip(" "), metaData)
-            if index == -1:
-                return "Invalid Column Name: " + column
-            columnIndexes[index] = columnList[column]
+        availableColumns = list(metaData["columns"].keys())
+        requestedColumns = list(columnList.keys())
+        for columnName in requestedColumns:
+            if columnName not in availableColumns:
+                return "Invalid column name: " + columnName
+        conditionColumn = condition.split("=")[0]
+        conditionValue = condition.split("=")[1]
 
-        print(columnIndexes)
+        if conditionColumn == None and conditionValue == None:
+            return "Invalid Condition: " + condition
 
-        comparatorIndex = parseConditionIndex(condition, metaData)
-
-        if comparatorIndex != -1:
-            comparatorValue = condition.split("=")[1].strip(" ")
-            file = open("db1.txt")
-            content = ""
-            for line in file:
-                existingTable = line.split("-->")[0]
-                if existingTable == tableName:
-                    rowList = line.split("-->")[1].split("|")
-                    for rowIndex in range(len(rowList)):
-                        values = rowList[rowIndex].split(",")
-                        if values[comparatorIndex] == comparatorValue:
-                            for index in columnIndexes.keys():
-                                values[index] = columnIndexes[index]
-                                print("values", values)
-                        rowList[rowIndex] = ",".join(values)
-                    rowList = "|".join(rowList)
-                    newLine = tableName + "-->" + rowList
-                    content += newLine
-                    print("content", content)
-                    continue
-                content += line
-                print("content", content)
-            file.close()
-            file = open("db1.txt", "w+")
-            file.write(content)
+        if conditionColumn not in availableColumns:
+            return "Invalid condition column name: " + conditionColumn
         else:
-            return "Condition is incorrect"
-        return "Nothing"
+            conditionIndex = availableColumns.index(conditionColumn)
+            isUpdated = False
+            for row in data:
+                if row[conditionIndex] == conditionValue:
+                    isUpdated = True
+                    for columnName in columnList:
+                        index = availableColumns.index(columnName)
+                        row[index] = columnList[columnName]
+
+            dataToRaw(tableName, data)
+
+            if isUpdated:
+                return "1 rows is updated in Table: " + tableName
+            else:
+                return "No Record found with " + conditionColumn + " is " + conditionValue
     else:
-        return "No table available with name: " + tableName
+        return "Table not found with name: " + tableName
 
 
-@app.route('/select', methods=['POST'])
+@ app.route('/select', methods=['POST'])
 def selectQuery():
     request_data = request.get_json()
 
@@ -267,7 +257,7 @@ def selectQuery():
     return flask.jsonify(data)
 
 
-@app.route('/insert', methods=['POST'])
+@ app.route('/insert', methods=['POST'])
 def insertQuery():
     request_data = request.get_json()
     tableName = request_data["table_name"]
@@ -299,7 +289,7 @@ def insertQuery():
     return "Record Inserted"
 
 
-@app.route('/validate', methods=['POST'])
+@ app.route('/validate', methods=['POST'])
 def isUserValid():
     isValid = False
     request_data = request.get_json()
