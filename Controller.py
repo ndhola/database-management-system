@@ -5,7 +5,10 @@ import time
 
 INVALID_QUERY = "invalid query"
 
-REMOTE_URL = "http://127.0.0.1:5000"
+SITE1_URL = "http://35.225.117.133"
+SITE2_URL = "http://35.233.233.65"
+
+LOCAL_URL = "http://127.0.0.1:5000"
 
 supportedQuery = ["SELECT", "UPDATE", "CREATE", "DELETE", "INSERT"]
 
@@ -42,7 +45,7 @@ def updateQuery(query):
         "condition": condition
     }
     print("data", data)
-    response = requests.post(REMOTE_URL + "/update", json=data)
+    response = requests.post(LOCAL_URL + "/update", json=data)
     return response.text
 
 
@@ -68,7 +71,7 @@ def selectQuery(query):
         "table_name": tablesName,
         "condition": condition
     }
-    response = requests.post(REMOTE_URL + "/select", json=data)
+    response = requests.post(LOCAL_URL + "/select", json=data)
     return response.text
 
 
@@ -88,7 +91,7 @@ def insertQuery(query):
         "table_name": table_name,
         "columnValues": column_values
     }
-    response = requests.post(REMOTE_URL + "/insert", json=insertdata)
+    response = requests.post(LOCAL_URL + "/insert", json=insertdata)
     return response.text
 
 
@@ -119,7 +122,7 @@ def createQuery(query):
 
     createData["columnMetas"] = columnMetas
 
-    response = requests.post(REMOTE_URL + "/create", json=createData)
+    response = requests.post(LOCAL_URL + "/create", json=createData)
     return response.text
 
 
@@ -138,7 +141,7 @@ def deleteQuery(query):
         "columnValue": columnValue
     }
 
-    response = requests.post(REMOTE_URL + "/delete", json=deletedata)
+    response = requests.post(LOCAL_URL + "/delete", json=deletedata)
     return response.text
 
 
@@ -171,7 +174,7 @@ data = {
     "password": password
 }
 
-response = requests.post(REMOTE_URL + "/validate", json=data)
+response = requests.post(LOCAL_URL + "/validate", json=data)
 
 isValid = json.loads(response.text)["isValid"]
 
