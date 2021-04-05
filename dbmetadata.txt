@@ -1,0 +1,2 @@
+customer1,PK->0,FK->null-->customer_name->string,25|customer_address->string,25
+customer2,PK->0,FK->null-->customer_name->string,25|customer_address->string,25
