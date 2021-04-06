@@ -5,6 +5,7 @@ import time
 from passlib.hash import bcrypt
 
 INVALID_QUERY = "invalid query"
+BUSY_STATE = "busy"
 
 SITE1_URL = "http://35.225.117.133"
 SITE2_URL = "http://35.233.233.65"
@@ -96,16 +97,32 @@ def insertQuery(query):
     return response.text
 
 
+def readSiteInput():
+    try:
+        gdd = open("GlobalDataDictionary.json")
+        sites = json.load(gdd)["sites"]
+        for siteIndex in range(len(sites)):
+            print(str(siteIndex + 1) + ": " + sites[siteIndex]["site_url"])
+        userInput = int(input("Enter site number: "))
+        if userInput > len(sites) or userInput < 1:
+            print("Enter site number between 1 to " + str(len(sites)))
+            readSiteInput()
+        return userInput
+    except:
+        print("Only Integer inputs are allowed")
+        readSiteInput()
+    finally:
+        gdd.close()
+
+
 def createQuery(query):
     matchGroups = re.match(
         "CREATE\sTABLE\s([\w]+)\s\(([a-zA-Z0-9_\s,]+)\)?", query)
-    print(matchGroups.group(1))
 
-    table_name = matchGroups.group(1)
-    print(type(table_name))
+    tableName = matchGroups.group(1)
 
     createData = {
-        "tableName": table_name
+        "tableName": tableName
     }
 
     print(matchGroups.group(2))
@@ -124,8 +141,20 @@ def createQuery(query):
     createData["columnMetas"] = columnMetas
     createData["query"] = query
 
-    response = requests.post(LOCAL_URL + "/create", json=createData)
-    return response.text
+    siteIndex = readSiteInput()
+
+    site_url = getSiteUrlByInput(siteIndex)
+
+    response = requests.post(site_url + "/create", json=createData)
+    response = json.loads(response.text)
+
+    isTableCreated = response["isTableCreated"]
+    msg = response["msg"]
+    if isTableCreated:
+        defineTableIntoSite(siteIndex, tableName)
+        return msg
+    else:
+        return msg
 
 
 def deleteQuery(query):
@@ -159,6 +188,43 @@ def runParser(queryType, query):
     return switcher.get(queryType, INVALID_QUERY)
 
 
+def defineTableIntoSite(input, tableName):
+    try:
+        gdd = open("GlobalDataDictionary.json", "w+")
+        sites = json.load(gdd)["sites"]
+        if input > len(sites) or input < 1:
+            return False
+        sites[input]["tables"].append(tableName)
+        data = {
+            "sites": sites
+        }
+        gdd.write(data)
+        return sites[input]["site_url"]
+    finally:
+        gdd.close()
+
+
+def getSiteUrlByInput(input):
+    try:
+        gdd = open("GlobalDataDictionary.json", "r")
+        sites = json.load(gdd)["sites"]
+        return sites[input]["site_url"]
+    finally:
+        gdd.close()
+
+
+def getSiteUrlByTableName(tableName):
+    try:
+        gdd = open("GlobalDataDictionary.json", "r")
+        sites = json.loads(gdd)
+        for site in sites:
+            if tableName in site["tables"]:
+                return site["site_url"]
+        return False
+    finally:
+        gdd.close()
+
+
 def printLog(query, msg, executionTime):
     print("========LOG=========")
     print("QUERY: " + query + " \nEXECUTION TIME: " + str(executionTime) + " ns")
@@ -176,30 +242,27 @@ data = {
     "password": password
 }
 
-try:
-    response = requests.post(LOCAL_URL + "/validate", json=data)
 
-    isValid = json.loads(response.text)["isValid"]
+response = requests.post(LOCAL_URL + "/validate", json=data)
 
-    if isValid:
-        query = "CREATE TABLE customer3 (customer_name string 25 PK, customer_address string 25)"
-        query1 = "DELETE FROM student WHERE studentName= Andrew"
-        query2 = "UPDATE customer SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
-        query2 = "INSERT INTO customer1 VALUES (Jemis6, 140 Gautam Park)"
-        queryType = identifyQuery(query)
-        if(queryType != INVALID_QUERY):
-            startTime = time.time()
-            processQuery = runParser(queryType, query)
-            msg = processQuery()
-            executionTime = time.time() - startTime
-            printLog(query, msg, executionTime)
-        else:
-            print("Invalid Query Type")
+isValid = json.loads(response.text)["isValid"]
+
+if isValid:
+    query = "CREATE TABLE customer8 (customer_name string 25 PK, customer_address string 25)"
+    query1 = "DELETE FROM student WHERE studentName= Andrew"
+    query2 = "UPDATE customer SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
+    query2 = "INSERT INTO customer1 VALUES (Jemis6, 140 Gautam Park)"
+    queryType = identifyQuery(query)
+    if(queryType != INVALID_QUERY):
+        startTime = time.time()
+        processQuery = runParser(queryType, query)
+        msg = processQuery()
+        executionTime = time.time() - startTime
+        printLog(query, msg, executionTime)
     else:
-        print("ERROR: Invalid User")
-except Exception as exception:
-    print("ERROR: Server is not Running-->")
-    print(exception)
+        print("Invalid Query Type")
+else:
+    print("ERROR: Invalid User")
 
 # CREATE TABLE student (studentId string 25 PK, studentName string 25)
 # CREATE TABLE faculty (facultyId int 25 PK, facultyName string 25, facultyEmail string 25)

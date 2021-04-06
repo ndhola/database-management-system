@@ -136,10 +136,12 @@ def createTable():
     primaryKey = request_data["primary_key"]
     columnMetas = "|".join(request_data["columnMetas"])
     query = request_data["query"]
+    msg = ""
+    isTableCreated = False
 
     file = open("dbmetadata.txt", "a+")
     if(isTableExist(tableName)):
-        return "Table is Already exist"
+        msg = "Table is Already exist"
     else:
         file.write(tableName + ",PK->" + str(primaryKey) +
                    ",FK->null" + "-->" + columnMetas + "\n")
@@ -154,8 +156,13 @@ def createTable():
         file.write(query)
         file.write("\n")
         file.close()
+        isTableCreated = True
+        msg = "Table Created Succussfully"
 
-    return "Table Created Successfully"
+    return flask.jsonify({
+        "msg": msg,
+        "isTableCreated": isTableCreated
+    })
 
 
 @app.route("/update", methods=['POST'])
