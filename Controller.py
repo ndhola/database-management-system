@@ -280,7 +280,7 @@ data = {
 }
 
 
-response = requests.post(LOCAL_URL + "/validate", json=data)
+response = requests.post(SITE1_URL + "/validate", json=data)
 
 isValid = json.loads(response.text)["isValid"]
 
