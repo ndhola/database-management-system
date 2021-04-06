@@ -133,7 +133,7 @@ def createQuery(query):
 
     site_url = getSiteUrlByInput(siteIndex)
 
-    response = requests.post(LOCAL_URL + "/create", json=createData)
+    response = requests.post(site_url + "/create", json=createData)
     response = json.loads(response.text)
 
     isTableCreated = response["isTableCreated"]
