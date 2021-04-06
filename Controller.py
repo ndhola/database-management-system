@@ -133,7 +133,7 @@ def createQuery(query):
 
     site_url = getSiteUrlByInput(siteIndex)
 
-    response = requests.post(site_url + "/create", json=createData)
+    response = requests.post(LOCAL_URL + "/create", json=createData)
     response = json.loads(response.text)
 
     isTableCreated = response["isTableCreated"]
@@ -269,10 +269,10 @@ response = requests.post(LOCAL_URL + "/validate", json=data)
 isValid = json.loads(response.text)["isValid"]
 
 if isValid:
-    query3 = "CREATE TABLE customer22 (customer_name string 25 PK, customer_address string 25)"
+    query = "CREATE TABLE customer (customer_name string 25 PK, customer_address string 25)"
     query1 = "DELETE FROM student WHERE studentName= Andrew"
     query1 = "UPDATE customer17 SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
-    query = "INSERT INTO customer22 VALUES (Jemis7, 140 Gautam Park)"
+    query1 = "INSERT INTO customer22 VALUES (Jemis7, 140 Gautam Park)"
     queryType = identifyQuery(query)
     if(queryType != INVALID_QUERY):
         startTime = time.time()

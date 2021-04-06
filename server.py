@@ -2,6 +2,7 @@ from flask import Flask, request
 import flask
 import json
 from passlib.hash import bcrypt
+import time
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
@@ -146,6 +147,10 @@ def createTable():
     query = request_data["query"]
     msg = ""
     isTableCreated = False
+
+    startTime = time.time()
+    time.sleep(3)
+    print("diff", time.time() - startTime)
 
     file = open("dbmetadata.txt", "a+")
     if(isTableExist(tableName)):
@@ -368,4 +373,4 @@ def isUserValid():
 # # rowList = "|".join(rowList)
 # dataToRaw("customer1", rowList)
 # print(rowList)
-app.run(debug=True)
+app.run(debug=True, threaded=True)
