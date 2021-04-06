@@ -122,6 +122,7 @@ def createQuery(query):
                 createData["primary_key"] = columnIndex
 
     createData["columnMetas"] = columnMetas
+    createData["query"] = query
 
     response = requests.post(LOCAL_URL + "/create", json=createData)
     return response.text

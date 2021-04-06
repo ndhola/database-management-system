@@ -135,7 +135,8 @@ def createTable():
     tableName = request_data["tableName"]
     primaryKey = request_data["primary_key"]
     columnMetas = "|".join(request_data["columnMetas"])
-    print(request_data)
+    query = request_data["query"]
+
     file = open("dbmetadata.txt", "a+")
     if(isTableExist(tableName)):
         return "Table is Already exist"
@@ -143,8 +144,14 @@ def createTable():
         file.write(tableName + ",PK->" + str(primaryKey) +
                    ",FK->null" + "-->" + columnMetas + "\n")
         file.close()
+
         file = open("db1.txt", "a")
         file.write(tableName + "-->")
+        file.write("\n")
+        file.close()
+
+        file = open("dump.txt", "a+")
+        file.write(query)
         file.write("\n")
         file.close()
 
