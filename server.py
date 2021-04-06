@@ -294,7 +294,6 @@ def insertQuery():
 
     meta = rawToMeta(tableName)
     availableColoumns = list(meta["columns"].keys())
-    print("availableColumns", availableColoumns)
     data = rawToData(tableName)
     primaryKeyIndex = int(meta["primary_key"])
 

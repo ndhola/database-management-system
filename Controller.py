@@ -2,7 +2,6 @@ import re
 import requests
 import json
 import time
-from passlib.hash import bcrypt
 
 INVALID_QUERY = "invalid query"
 BUSY_STATE = "busy"
@@ -24,7 +23,7 @@ def identifyQuery(query):
 
 def updateQuery(query):
     matchGroups = re.match(
-        "UPDATE\s([\w]+)\sSET\s([\w\s=,'\"]+)\s?(WHERE)\s([\w\s]+=['\w\s]+)", query)
+        "UPDATE\s([\w]+)\sSET\s([\w\s=,\@\.\\+'\"]+)\s?(WHERE)\s([\w\s]+=['\w\s]+)", query)
     if matchGroups.group(3) == "WHERE" and matchGroups.group(2) == None:
         return "Condition is missing"
 
@@ -82,16 +81,14 @@ def selectQuery(query):
 
 def insertQuery(query):
     matchGroups = re.match(
-        "INSERT INTO ([A-Za-z0-9_]+)\sVALUES\s\(([a-z,A-Z0-9\@\.\s']+)\)", query)
-    print(matchGroups.group(1))
+        "INSERT INTO ([A-Za-z0-9_]+)\sVALUES\s\(([a-z,A-Z0-9\\+\@\.\s']+)\)", query)
     tableName = matchGroups.group(1)
     columnValues = matchGroups.group(2)
-
-    print(columnValues)
     column_values = []
+
     for column in columnValues.split(","):
         column_values.append(column.replace("'", "").strip(" "))
-    print(column_values)
+
     insertdata = {
         "table_name": tableName,
         "columnValues": column_values
@@ -285,11 +282,11 @@ response = requests.post(SITE1_URL + "/validate", json=data)
 isValid = json.loads(response.text)["isValid"]
 
 if isValid:
-    query1 = "CREATE TABLE customer (customer_name string 25 PK, customer_address string 25)"
-    query = "DELETE FROM customer WHERE customer_name= 'Jemis2'"
-    query2 = "UPDATE customer SET customer_name= 'hello',customer_address= 'Surat' WHERE customer_name='Jemis7'"
-    query1 = "INSERT INTO customer VALUES (Jemis, 140 Gautam Park)"
-    query = "SELECT customer_name FROM customer21 WHERE customer_name = 'Jemis6'"
+    query = "UPDATE student SET studentName= pankaj,studentEmail= pankaj@gmail.com WHERE studentId=1"
+    query2 = "DELETE FROM customer WHERE customer_name= 'Jemis2'"
+    query3 = "UPDATE customer SET customer_name= 'hello',customer_address= 'Surat' WHERE customer_name='Jemis7'"
+    query4 = "INSERT INTO customer VALUES (Jemis, 140 Gautam Park)"
+    query5 = "SELECT customer_name FROM customer21 WHERE customer_name = 'Jemis6'"
     queryType = identifyQuery(query)
     if(queryType != INVALID_QUERY):
         startTime = time.time()
@@ -305,7 +302,7 @@ else:
 # CREATE TABLE student (studentId string 25 PK, studentName string 25)
 # CREATE TABLE faculty (facultyId int 25 PK, facultyName string 25, facultyEmail string 25)
 # CREATE TABLE course (courseId int 25 PK, courseName string 25, courseRating string 25)
-# CREATE TABLE grade (courseId int 25 PK, studentId int 25, grade string 25)
+# CREATE TABLE grade (gradeId int 25 PK, courseId int 25 PK, studentId int 25, grade string 25)
 
 # INSERT INTO student VALUES (1, jemis, jemisgmailcom)
 # INSERT INTO student VALUES (2, nikunj, nikunjgmailcom)
