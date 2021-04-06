@@ -269,10 +269,10 @@ response = requests.post(LOCAL_URL + "/validate", json=data)
 isValid = json.loads(response.text)["isValid"]
 
 if isValid:
-    query = "CREATE TABLE customer (customer_name string 25 PK, customer_address string 25)"
+    query1 = "CREATE TABLE customer (customer_name string 25 PK, customer_address string 25)"
     query1 = "DELETE FROM student WHERE studentName= Andrew"
     query1 = "UPDATE customer17 SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
-    query1 = "INSERT INTO customer22 VALUES (Jemis7, 140 Gautam Park)"
+    query = "INSERT INTO customer VALUES (Jemis7, 140 Gautam Park)"
     queryType = identifyQuery(query)
     if(queryType != INVALID_QUERY):
         startTime = time.time()

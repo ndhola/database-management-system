@@ -148,9 +148,9 @@ def createTable():
     msg = ""
     isTableCreated = False
 
-    startTime = time.time()
-    time.sleep(3)
-    print("diff", time.time() - startTime)
+    # startTime = time.time()
+    # time.sleep(3)
+    # print("diff", time.time() - startTime)
 
     file = open("dbmetadata.txt", "a+")
     if(isTableExist(tableName)):
