@@ -24,11 +24,11 @@ def identifyQuery(query):
 
 def updateQuery(query):
     matchGroups = re.match(
-        "UPDATE\s([\w]+)\sSET\s([\w\s=,'\"]+)+\s?(WHERE)\s?([a-zA-Z0-9]+=[a-zA-Z0-9])", query)
+        "UPDATE\s([\w]+)\sSET\s([\w\s=,'\"]+)\s?(WHERE)\s([\w]+=[\w]+)", query)
     if matchGroups.group(3) == "WHERE" and matchGroups.group(2) == None:
         return "Condition is missing"
 
-    tablesName = matchGroups.group(1)
+    tableName = matchGroups.group(1)
     columns = matchGroups.group(2)
     columnList = {}
     for column in columns.split(","):
@@ -36,18 +36,17 @@ def updateQuery(query):
         columnValue = column.split("=")[1].strip(" ")
         columnList[columnName] = columnValue
 
-    print("Column List", columnList)
-
     if matchGroups.group(3) == "WHERE":
         condition = matchGroups.group(4)
 
     data = {
         "column_list": columnList,
-        "table_name": tablesName,
+        "table_name": tableName,
         "condition": condition
     }
-    print("data", data)
-    response = requests.post(LOCAL_URL + "/update", json=data)
+
+    site_url = getSiteUrlByTableName(tableName)
+    response = requests.post(site_url + "/update", json=data)
     return response.text
 
 
@@ -63,17 +62,19 @@ def selectQuery(query):
     columnNames = matchGroups.group(1).split(",")
     for columnIndex in range(len(columnNames)):
         columnNames[columnIndex] = columnNames[columnIndex].strip(" ")
-    tablesName = matchGroups.group(2)
+    tableName = matchGroups.group(2)
     condition = False
     if matchGroups.group(3) == "WHERE":
         condition = matchGroups.group(4)
 
     data = {
         "column_names": columnNames,
-        "table_name": tablesName,
+        "table_name": tableName,
         "condition": condition
     }
-    response = requests.post(LOCAL_URL + "/select", json=data)
+
+    site_url = getSiteUrlByTableName(tableName)
+    response = requests.post(site_url + "/select", json=data)
     return response.text
 
 
@@ -81,7 +82,7 @@ def insertQuery(query):
     matchGroups = re.match(
         "INSERT INTO ([A-Za-z0-9_]+)\sVALUES\s\(([a-z,A-Z0-9\@\.\s']+)\)", query)
     print(matchGroups.group(1))
-    table_name = matchGroups.group(1)
+    tableName = matchGroups.group(1)
     columnValues = matchGroups.group(2)
 
     print(columnValues)
@@ -90,29 +91,16 @@ def insertQuery(query):
         column_values.append(column.strip(" "))
     print(column_values)
     insertdata = {
-        "table_name": table_name,
+        "table_name": tableName,
         "columnValues": column_values
     }
-    response = requests.post(LOCAL_URL + "/insert", json=insertdata)
+
+    site_url = getSiteUrlByTableName(tableName)
+
+    response = requests.post(site_url + "/insert", json=insertdata)
+
+    printStateOfDatabase(site_url)
     return response.text
-
-
-def readSiteInput():
-    try:
-        gdd = open("GlobalDataDictionary.json")
-        sites = json.load(gdd)["sites"]
-        for siteIndex in range(len(sites)):
-            print(str(siteIndex + 1) + ": " + sites[siteIndex]["site_url"])
-        userInput = int(input("Enter site number: "))
-        if userInput > len(sites) or userInput < 1:
-            print("Enter site number between 1 to " + str(len(sites)))
-            readSiteInput()
-        return userInput
-    except:
-        print("Only Integer inputs are allowed")
-        readSiteInput()
-    finally:
-        gdd.close()
 
 
 def createQuery(query):
@@ -150,6 +138,7 @@ def createQuery(query):
 
     isTableCreated = response["isTableCreated"]
     msg = response["msg"]
+    printStateOfDatabase(site_url)
     if isTableCreated:
         defineTableIntoSite(siteIndex, tableName)
         return msg
@@ -172,8 +161,27 @@ def deleteQuery(query):
         "columnValue": columnValue
     }
 
-    response = requests.post(LOCAL_URL + "/delete", json=deletedata)
+    site_url = getSiteUrlByTableName(tableName)
+    response = requests.post(site_url + "/delete", json=deletedata)
     return response.text
+
+
+def readSiteInput():
+    try:
+        gdd = open("GlobalDataDictionary.json")
+        sites = json.load(gdd)["sites"]
+        for siteIndex in range(len(sites)):
+            print(str(siteIndex + 1) + ": " + sites[siteIndex]["site_url"])
+        userInput = int(input("Enter site number: "))
+        if userInput > len(sites) or userInput < 1:
+            print("Enter site number between 1 to " + str(len(sites)))
+            readSiteInput()
+        return userInput
+    except:
+        print("Only Integer inputs are allowed")
+        readSiteInput()
+    finally:
+        gdd.close()
 
 
 def runParser(queryType, query):
@@ -188,18 +196,31 @@ def runParser(queryType, query):
     return switcher.get(queryType, INVALID_QUERY)
 
 
+def printStateOfDatabase(siteUrl):
+    response = requests.get(siteUrl + "/state")
+    data = json.loads(response.text)
+    print()
+    print("========EVENT LOG=========")
+    print("SITE URL: " + siteUrl)
+    if response:
+        for row in data:
+            print(row)
+    else:
+        "No data is available till now"
+    print()
+
+
 def defineTableIntoSite(input, tableName):
     try:
-        gdd = open("GlobalDataDictionary.json", "w+")
+        gdd = open("GlobalDataDictionary.json")
         sites = json.load(gdd)["sites"]
-        if input > len(sites) or input < 1:
-            return False
-        sites[input]["tables"].append(tableName)
+        sites[input - 1]["tables"].append(tableName)
         data = {
             "sites": sites
         }
-        gdd.write(data)
-        return sites[input]["site_url"]
+        gdd.close()
+        with open("GlobalDataDictionary.json", "w") as gdd:
+            json.dump(data, gdd)
     finally:
         gdd.close()
 
@@ -208,15 +229,15 @@ def getSiteUrlByInput(input):
     try:
         gdd = open("GlobalDataDictionary.json", "r")
         sites = json.load(gdd)["sites"]
-        return sites[input]["site_url"]
+        return sites[input-1]["site_url"]
     finally:
         gdd.close()
 
 
 def getSiteUrlByTableName(tableName):
     try:
-        gdd = open("GlobalDataDictionary.json", "r")
-        sites = json.loads(gdd)
+        gdd = open("GlobalDataDictionary.json")
+        sites = json.load(gdd)["sites"]
         for site in sites:
             if tableName in site["tables"]:
                 return site["site_url"]
@@ -248,10 +269,10 @@ response = requests.post(LOCAL_URL + "/validate", json=data)
 isValid = json.loads(response.text)["isValid"]
 
 if isValid:
-    query = "CREATE TABLE customer8 (customer_name string 25 PK, customer_address string 25)"
+    query3 = "CREATE TABLE customer22 (customer_name string 25 PK, customer_address string 25)"
     query1 = "DELETE FROM student WHERE studentName= Andrew"
-    query2 = "UPDATE customer SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
-    query2 = "INSERT INTO customer1 VALUES (Jemis6, 140 Gautam Park)"
+    query1 = "UPDATE customer17 SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
+    query = "INSERT INTO customer22 VALUES (Jemis7, 140 Gautam Park)"
     queryType = identifyQuery(query)
     if(queryType != INVALID_QUERY):
         startTime = time.time()

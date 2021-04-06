@@ -11,8 +11,13 @@ def getStateOfDatabase():
     file = open("db1.txt", "r")
     state = []
     for line in file:
+        if line == "\n" or line == " ":
+            return False
         tableName = line.split("-->")[0]
-        totalRows = len(line.split("-->")[1].split("|"))
+        if line.split("-->")[1] == "\n" or line.split("-->")[1] == "":
+            totalRows = 0
+        else:
+            totalRows = len(line.split("-->")[1].split("|"))
         state.append("Table: " + tableName + " Total Rows: " + str(totalRows))
     return state
 
@@ -126,7 +131,10 @@ def hello():
 @app.route('/state')
 def getState():
     data = getStateOfDatabase()
-    return flask.jsonify(data)
+    if data:
+        return flask.jsonify(data)
+    else:
+        return data
 
 
 @app.route('/create', methods=['POST'])
