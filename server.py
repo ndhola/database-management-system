@@ -194,8 +194,8 @@ def updateQuery():
         for columnName in requestedColumns:
             if columnName not in availableColumns:
                 return "Invalid column name: " + columnName
-        conditionColumn = condition.split("=")[0]
-        conditionValue = condition.split("=")[1]
+        conditionColumn = condition.split("=")[0].strip(" ")
+        conditionValue = condition.split("=")[1].replace("'", "").strip(" ")
 
         if conditionColumn == None and conditionValue == None:
             return "Invalid Condition: " + condition
@@ -250,8 +250,9 @@ def selectQuery():
                 columnList.append(availabeColumns[index])
 
         if condition:
-            conditionColumn = condition.split("=")[0]
-            conditionValue = condition.split("=")[1]
+            conditionColumn = condition.split("=")[0].strip(" ")
+            conditionValue = condition.split(
+                "=")[1].replace("'", "").strip(" ")
 
             availabeColumns = list(metaData["columns"].keys())
 
@@ -321,8 +322,8 @@ def insertQuery():
 def deleteQuery():
     request_data = request.get_json()
     tableName = request_data["tableName"]
-    conditionColumn = request_data["columnName"]
-    conditionValue = request_data["columnValue"]
+    conditionColumn = request_data["columnName"].strip(" ")
+    conditionValue = request_data["columnValue"].replace("'", "").strip(" ")
 
     metaData = rawToMeta(tableName)
     data = rawToData(tableName)
@@ -341,7 +342,16 @@ def deleteQuery():
     else:
         return "Table not found with name: " + tableName
 
-    return "dummy"
+    return "Record is deleted where column name: " + conditionColumn + " with value: " + conditionValue
+
+
+@app.route("/dump", methods=['GET'])
+def getDump():
+    file = open("dump.txt")
+    data = []
+    for line in file:
+        data.append(line)
+    return flask.jsonify(data)
 
 
 @app.route('/validate', methods=['POST'])

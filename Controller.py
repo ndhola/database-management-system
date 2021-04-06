@@ -24,7 +24,7 @@ def identifyQuery(query):
 
 def updateQuery(query):
     matchGroups = re.match(
-        "UPDATE\s([\w]+)\sSET\s([\w\s=,'\"]+)\s?(WHERE)\s([\w]+=[\w]+)", query)
+        "UPDATE\s([\w]+)\sSET\s([\w\s=,'\"]+)\s?(WHERE)\s([\w\s]+=['\w\s]+)", query)
     if matchGroups.group(3) == "WHERE" and matchGroups.group(2) == None:
         return "Condition is missing"
 
@@ -33,7 +33,7 @@ def updateQuery(query):
     columnList = {}
     for column in columns.split(","):
         columnName = column.split("=")[0].strip(" ")
-        columnValue = column.split("=")[1].strip(" ")
+        columnValue = column.split("=")[1].replace("'", "").strip(" ")
         columnList[columnName] = columnValue
 
     if matchGroups.group(3) == "WHERE":
@@ -47,12 +47,13 @@ def updateQuery(query):
 
     site_url = getSiteUrlByTableName(tableName)
     response = requests.post(site_url + "/update", json=data)
+    printStateOfDatabase(site_url)
     return response.text
 
 
 def selectQuery(query):
     matchGroups = re.match(
-        "SELECT\s([\w\s,*\*?]+)\sFROM\s(\w*)\s?(WHERE)?\s?(\w+[=><]\w+)?", query)
+        "SELECT\s([\w\s,*\*?]+)\sFROM\s(\w*)\s?(WHERE)?\s?([\w\s]+=['\w\s]+)?", query)
 
     print(matchGroups.groups())
 
@@ -74,6 +75,7 @@ def selectQuery(query):
     }
 
     site_url = getSiteUrlByTableName(tableName)
+    printStateOfDatabase(site_url)
     response = requests.post(site_url + "/select", json=data)
     return response.text
 
@@ -88,7 +90,7 @@ def insertQuery(query):
     print(columnValues)
     column_values = []
     for column in columnValues.split(","):
-        column_values.append(column.strip(" "))
+        column_values.append(column.replace("'", "").strip(" "))
     print(column_values)
     insertdata = {
         "table_name": tableName,
@@ -162,8 +164,22 @@ def deleteQuery(query):
     }
 
     site_url = getSiteUrlByTableName(tableName)
+    printStateOfDatabase(site_url)
     response = requests.post(site_url + "/delete", json=deletedata)
     return response.text
+
+
+def getDump():
+    userInput = readSiteInput()
+    site_url = getSiteUrlByInput(userInput)
+    response = requests.get(site_url + "/dump")
+    data = json.loads(response.text)
+    fileName = input("Enter file name for dump: ")
+    if fileName == "":
+        fileName = "dump.txt"
+    file = open(fileName, "w+")
+    file.write("".join(data))
+    file.close()
 
 
 def readSiteInput():
@@ -270,9 +286,10 @@ isValid = json.loads(response.text)["isValid"]
 
 if isValid:
     query1 = "CREATE TABLE customer (customer_name string 25 PK, customer_address string 25)"
-    query1 = "DELETE FROM student WHERE studentName= Andrew"
-    query1 = "UPDATE customer17 SET customer_name= helly,customer_address= Surat WHERE customer_name=group2"
-    query = "INSERT INTO customer VALUES (Jemis7, 140 Gautam Park)"
+    query = "DELETE FROM customer WHERE customer_name= 'Jemis2'"
+    query2 = "UPDATE customer SET customer_name= 'hello',customer_address= 'Surat' WHERE customer_name='Jemis7'"
+    query1 = "INSERT INTO customer VALUES (Jemis, 140 Gautam Park)"
+    query = "SELECT customer_name FROM customer21 WHERE customer_name = 'Jemis6'"
     queryType = identifyQuery(query)
     if(queryType != INVALID_QUERY):
         startTime = time.time()
