@@ -271,6 +271,13 @@ def getSiteUrlByInput(input):
         gdd.close()
 
 
+def addUserLog(userName, query, msg):
+    file = open("userLog.txt", "a+")
+    file.write("userName: " + userName + " Query: " +
+               query + " Message: " + msg + "\n")
+    file.close()
+
+
 def getSiteUrlByTableName(tableName):
     try:
         gdd = open("GlobalDataDictionary.json")
@@ -307,12 +314,12 @@ response = requests.post(SITE1_URL + "/validate", json=data)
 isValid = json.loads(response.text)["isValid"]
 
 if isValid:
-    query = "UPDATE student SET studentName= pankaj,studentEmail= pankaj@gmail.com WHERE studentId=1"
-    query2 = "DELETE FROM customer WHERE customer_name= 'Jemis2'"
-    query = "UPDATE customer21 SET customer_name= 'hello',customer_address= 'Surat' WHERE customer_name='Jemis7'"
-    query2 = "INSERT INTO course VALUES (5508, 'Cloud Computing', 5)"
-    query = "SELECT * FROM course"
-    query2 = "CREATE TABLE student (studentId string 25 PK, studentName string 25)"
+    query = "INSERT INTO grade VALUES (104, 5308, 2,'A+')"
+    query1 = "DELETE FROM customer WHERE customer_name= 'Jemis2'"
+    query2 = "UPDATE customer21 SET customer_name= 'hello',customer_address= 'Surat' WHERE customer_name='Jemis7'"
+    query3 = "INSERT INTO course VALUES (5508, 'Cloud Computing', 5)"
+    query4 = "SELECT * FROM course"
+    query5 = "CREATE TABLE student (studentId string 25 PK, studentName string 25)"
     queryType = identifyQuery(query)
     if(queryType != INVALID_QUERY):
         startTime = time.time()
@@ -320,37 +327,8 @@ if isValid:
         msg = processQuery()
         executionTime = time.time() - startTime
         printLog(query, msg, executionTime)
+        addUserLog(username, query, msg)
     else:
         print("Invalid Query Type")
 else:
     print("ERROR -> Invalid User: " + str(username))
-
-# CREATE TABLE student (studentId string 25 PK, studentName string 25)
-# CREATE TABLE faculty (facultyId int 25 PK, facultyName string 25, facultyEmail string 25)
-# CREATE TABLE course (courseId int 25 PK, courseName string 25, courseRating string 25)
-# CREATE TABLE grade (gradeId int 25 PK, courseId int 25 PK, studentId int 25, grade string 25)
-
-# INSERT INTO student VALUES (1, jemis, jemisgmailcom)
-# INSERT INTO student VALUES (2, nikunj, nikunjgmailcom)
-# INSERT INTO student VALUES (3, helly, hellygmailcom)
-# INSERT INTO faculty VALUES (1, robert, robertgmailcom)
-# INSERT INTO faculty VALUES (2, saurabh, saurabhgmailcom)
-# INSERT INTO faculty VALUES (3, andrew, andrewgmailcom)
-
-
-# SELECT * FROM student
-# SELECT * FROM faculty
-
-# UPDATE student SET studentName= Andrew,studentEmail= Andrewgmail WHERE studentId=1
-
-# INSERT INTO course VALUES (1, Advance software development, 4)
-# INSERT INTO course VALUES (2, Data warehouse, 4)
-# INSERT INTO course VALUES (3, Communication skills, 5)
-
-
-# INSERT INTO grade VALUES (101, 1, Advance software development, 4)
-# INSERT INTO grade VALUES (102, 2, Data warehouse, 4)
-# INSERT INTO grade VALUES (103, 3, Communication skills, 5)
-
-
-# CREATE TABLE grade (gradeId int 25 PK, courseId int 25, studentId int 25, grade string 25)

@@ -1,0 +1,4 @@
+userName: user1 Query: INSERT INTO faculty VALUES (3, 'andrew', 'andrew@gmail.com') Message: SUCCESS -> Record Inserted
+userName: user1 Query: INSERT INTO faculty VALUES (4, 'john', 'john@gmail.com') Message: SUCCESS -> Record Inserted
+userName: user1 Query: INSERT INTO grade VALUES (104, 5308, 2,'A+') Message: SUCCESS -> Record Inserted
+
