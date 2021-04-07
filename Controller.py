@@ -77,28 +77,31 @@ def selectQuery(query):
     }
 
     site_url = getSiteUrlByTableName(tableName)
-    if site_url:
-        printStateOfDatabase(site_url)
-        response = requests.post(site_url + "/select", json=data)
-        data = json.loads(response.text)
-        isFetched = data["isFetched"]
-        if isFetched:
-            table = PrettyTable(data["columnNames"])
-            for row in data["columnValues"]:
-                table.add_row(row)
-            print("======================RESULT TABLE=====================")
-            print(table)
-            print("=======================================================\n")
-            return data["msg"]
-        else:
-            return "ERROR -> No results found"
+    if LOCAL_URL:
+        printStateOfDatabase(LOCAL_URL)
+        response = requests.post(LOCAL_URL + "/select", json=data)
+        try:
+            data = json.loads(response.text)
+            isFetched = data["isFetched"]
+            if isFetched:
+                table = PrettyTable(data["columnNames"])
+                for row in data["columnValues"]:
+                    table.add_row(row)
+                print("======================RESULT TABLE=====================")
+                print(table)
+                print("=======================================================\n")
+                return data["msg"]
+            elif not isFetched:
+                return "ERROR -> No results found"
+        except:
+            return response.text
     else:
         return "ERROR -> No site url found for this Table Name: " + tableName
 
 
 def insertQuery(query):
     matchGroups = re.match(
-        "INSERT INTO ([A-Za-z0-9_]+)\sVALUES\s\(([a-z,A-Z0-9\\+\@\.\s']+)\)", query)
+        "INSERT INTO ([A-Za-z0-9_]+)\sVALUES\s\(([a-z,A-Z0-9\\+-\@\.\s']+)\)", query)
     tableName = matchGroups.group(1)
     columnValues = matchGroups.group(2)
     column_values = []
@@ -314,12 +317,60 @@ def executeQuery():
         print("Invalid Query Type")
 
 
+def defineCardinality():
+    while True:
+        print("1. 1 -> 1\n2. 1 -> M")
+        try:
+            userInput = int(input("Enter Cardinality Type"))
+            if userInput > 2 or userInput < 1:
+                print("Please enter 1 or 2 to choose ")
+            else:
+                return "(1->1)" if userInput == 1 else "(1->M)"
+        except:
+            continue
+
+
+def createRelationShips():
+    currentTable = input("Enter Current Table: ")
+    referenceTable = input("Enter Reference Table: ")
+    isCurrentTableValid = False
+    isReferencedTableValid = False
+    with open("GlobalDataDictionary.json", "r") as file:
+        sites = json.load(file)["sites"]
+        for site in sites:
+            if currentTable in site["tables"]:
+                isCurrentTableValid = True
+            if referenceTable in site["tables"]:
+                isReferencedTableValid = True
+    if not isCurrentTableValid:
+        return "Current table is not present in Database"
+    if not isReferencedTableValid:
+        return "Referenced table is not present in database"
+    cardinality = defineCardinality()
+    relationship = input("Enter Relationship Name: ")
+    with open("entityrelationship.txt", "a+") as file:
+        file.write(currentTable + "---" + cardinality + "---" +
+                   relationship + "---" + cardinality + "---" + referenceTable)
+        file.write("\n")
+
+
+def printERD():
+    print("======================ER========================")
+    with open("entityrelationship.txt", "r") as file:
+        for line in file:
+            if line == "" or line == "\n":
+                print("No relationships are available")
+            else:
+                print(line)
+
+
 def actionSwitcher(userInput):
     switcher = {
         "1": lambda: executeQuery(),
         "2": lambda: getDump(),
-        "3": lambda: "Hello",
-        "4": lambda: exit()
+        "3": lambda: createRelationShips(),
+        "4": lambda: printERD(),
+        "5": lambda: exit()
     }
     return switcher.get(userInput, "Please enter input in between 1-4")
 
@@ -339,12 +390,9 @@ isValid = json.loads(response.text)["isValid"]
 
 if isValid:
     while True:
-        print("1. Execute Query\n2. Create Dump\n3. Create User Log\n4. Exit")
+        print("1. Execute Query\n2. Create Dump\n3. Create Relationship\n4. Print E-R\n5. Exit")
         userInput = input("Enter Action Number: ")
         action = actionSwitcher(userInput)
-        try:
-            action()
-        except:
-            print("Please enter input in between 1-4")
+        action()
 else:
     print("ERROR -> Invalid User: " + str(username))

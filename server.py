@@ -295,7 +295,7 @@ def deleteQuery():
         availableColumns = list(metaData["columns"].keys())
 
         if conditionColumn not in availableColumns:
-            return "Invalid condition column name: " + conditionColumn
+            return "ERROR -> Invalid condition column name: " + conditionColumn
         else:
             conditionIndex = availableColumns.index(conditionColumn)
 
@@ -304,9 +304,9 @@ def deleteQuery():
         print(len(data))
         dataToRaw(tableName, data)
     else:
-        return "Table not found with name: " + tableName
+        return "ERROR -> Table not found with name: " + tableName
 
-    return "Record is deleted where column name: " + conditionColumn + " with value: " + conditionValue
+    return "SUCCESS -> Record is deleted where column name: " + conditionColumn + " with value: " + conditionValue
 
 
 @app.route("/dump", methods=['GET'])
