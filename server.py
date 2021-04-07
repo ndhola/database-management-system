@@ -299,11 +299,13 @@ def deleteQuery():
             return "ERROR -> Invalid condition column name: " + conditionColumn
         else:
             conditionIndex = availableColumns.index(conditionColumn)
-
+        length = len(data)
         data = list(
             filter(lambda row: row[conditionIndex] != conditionValue, data))
-        print(len(data))
-        dataToRaw(tableName, data)
+        if length == len(data):
+            return "ERROR -> No Records found where column name: " + conditionColumn + " with value: " + conditionValue
+        else:
+            dataToRaw(tableName, data)
     else:
         return "ERROR -> Table not found with name: " + tableName
 
