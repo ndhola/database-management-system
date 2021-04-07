@@ -92,7 +92,7 @@ def selectQuery(query):
             print("=======================================================\n")
             return data["msg"]
         else:
-            return response.text
+            return "ERROR -> No results found"
     else:
         return "ERROR -> No site url found for this Table Name: " + tableName
 
@@ -310,8 +310,8 @@ if isValid:
     query = "UPDATE student SET studentName= pankaj,studentEmail= pankaj@gmail.com WHERE studentId=1"
     query2 = "DELETE FROM customer WHERE customer_name= 'Jemis2'"
     query = "UPDATE customer21 SET customer_name= 'hello',customer_address= 'Surat' WHERE customer_name='Jemis7'"
-    query = "INSERT INTO customer VALUES ('Nikunj', 'Surat')"
-    query2 = "SELECT * FROM customer21"
+    query2 = "INSERT INTO course VALUES (5508, 'Cloud Computing', 5)"
+    query = "SELECT * FROM course"
     query2 = "CREATE TABLE student (studentId string 25 PK, studentName string 25)"
     queryType = identifyQuery(query)
     if(queryType != INVALID_QUERY):
