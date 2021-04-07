@@ -77,9 +77,9 @@ def selectQuery(query):
     }
 
     site_url = getSiteUrlByTableName(tableName)
-    if LOCAL_URL:
-        printStateOfDatabase(LOCAL_URL)
-        response = requests.post(LOCAL_URL + "/select", json=data)
+    if site_url:
+        printStateOfDatabase(site_url)
+        response = requests.post(site_url + "/select", json=data)
         try:
             data = json.loads(response.text)
             isFetched = data["isFetched"]
@@ -275,7 +275,6 @@ def getSiteUrlByInput(input):
 
 def addUserLog(query, msg):
     with open("userLog.txt", "a+") as file:
-        print("in file")
         file = open("userLog.txt", "a+")
         now = datetime.now()
         dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
@@ -365,6 +364,7 @@ def printERD():
 
 
 def actionSwitcher(userInput):
+    userInput = str(userInput)
     switcher = {
         "1": lambda: executeQuery(),
         "2": lambda: getDump(),
@@ -391,8 +391,12 @@ isValid = json.loads(response.text)["isValid"]
 if isValid:
     while True:
         print("1. Execute Query\n2. Create Dump\n3. Create Relationship\n4. Print E-R\n5. Exit")
-        userInput = input("Enter Action Number: ")
-        action = actionSwitcher(userInput)
-        action()
+        try:
+            userInput = int(input("Enter Action Number: "))
+            action = actionSwitcher(userInput)
+            action()
+        except:
+            print("Invalid Input")
+            continue
 else:
     print("ERROR -> Invalid User: " + str(username))

@@ -256,7 +256,8 @@ def selectQuery():
             for columnIndex in range(len(availabeColumns)):
                 if conditionColumn == availabeColumns[columnIndex]:
                     conditionIndex = columnIndex
-
+        if not data:
+            return "No Records for table name: " + tableName
         values = []
         for row in data:
             data = []
