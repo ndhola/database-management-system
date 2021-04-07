@@ -1,1 +1,9 @@
-{"sites": [{"site_url": "http://35.225.117.133", "tables": ["student", "faculty", "student", "faculty"]}, {"site_url": "http://35.233.233.65", "tables": ["course", "grade", "course", "grade"]}]}
+{
+  "sites": [
+    { "site_url": "http://35.225.117.133", "tables": [] },
+    {
+      "site_url": "http://35.233.233.65",
+      "tables": []
+    }
+  ]
+}

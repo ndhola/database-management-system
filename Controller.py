@@ -171,7 +171,6 @@ def createQuery(query):
 def deleteQuery(query):
     matchGroups = re.match(
         "DELETE FROM ([\w]+) WHERE \s?([\w\s=,'\"]+)", query)
-    print(matchGroups.group(1))
     tableName = matchGroups.group(1)
     condition = matchGroups.group(2)
     columnName = condition.split("=")[0].strip(" ")
@@ -184,9 +183,12 @@ def deleteQuery(query):
     }
 
     site_url = getSiteUrlByTableName(tableName)
-    printStateOfDatabase(site_url)
-    response = requests.post(site_url + "/delete", json=deletedata)
-    return response.text
+    if site_url:
+        printStateOfDatabase(site_url)
+        response = requests.post(site_url + "/delete", json=deletedata)
+        return response.text
+    else:
+        print("ERROR -> No site url found for this table: " + tableName)
 
 
 def getDump():
@@ -361,6 +363,7 @@ def printERD():
                 print("No relationships are available")
             else:
                 print(line)
+    print("================================================\n")
 
 
 def actionSwitcher(userInput):
