@@ -2,6 +2,7 @@ import re
 import requests
 import json
 import time
+from prettytable import PrettyTable
 
 INVALID_QUERY = "invalid query"
 BUSY_STATE = "busy"
@@ -45,8 +46,11 @@ def updateQuery(query):
     }
 
     site_url = getSiteUrlByTableName(tableName)
-    response = requests.post(site_url + "/update", json=data)
-    printStateOfDatabase(site_url)
+    if site_url:
+        response = requests.post(site_url + "/update", json=data)
+        printStateOfDatabase(site_url)
+    else:
+        return "ERROR -> No site url found for this Table Name: " + tableName
     return response.text
 
 
@@ -74,9 +78,23 @@ def selectQuery(query):
     }
 
     site_url = getSiteUrlByTableName(tableName)
-    printStateOfDatabase(site_url)
-    response = requests.post(site_url + "/select", json=data)
-    return response.text
+    if site_url:
+        printStateOfDatabase(site_url)
+        response = requests.post(site_url + "/select", json=data)
+        data = json.loads(response.text)
+        isFetched = data["isFetched"]
+        if isFetched:
+            table = PrettyTable(data["columnNames"])
+            for row in data["columnValues"]:
+                table.add_row(row)
+            print("======================RESULT TABLE=====================")
+            print(table)
+            print("=======================================================\n")
+            return data["msg"]
+        else:
+            return response.text
+    else:
+        return "ERROR -> No site url found for this Table Name: " + tableName
 
 
 def insertQuery(query):
@@ -96,9 +114,12 @@ def insertQuery(query):
 
     site_url = getSiteUrlByTableName(tableName)
 
-    response = requests.post(site_url + "/insert", json=insertdata)
+    if site_url:
+        response = requests.post(site_url + "/insert", json=insertdata)
+        printStateOfDatabase(site_url)
+    else:
+        return "ERROR -> No site url found for this Table Name: " + tableName
 
-    printStateOfDatabase(site_url)
     return response.text
 
 
@@ -213,13 +234,16 @@ def printStateOfDatabase(siteUrl):
     response = requests.get(siteUrl + "/state")
     data = json.loads(response.text)
     print()
-    print("========EVENT LOG=========")
-    print("SITE URL: " + siteUrl)
+    print("=======================EVENT LOG=======================")
+    print("SITE URL: " + siteUrl + "\n")
     if response:
+        table = PrettyTable(["Table Name", "Total Rows"])
         for row in data:
-            print(row)
+            table.add_row(row)
+        print(table)
     else:
         "No data is available till now"
+    print("=======================================================")
     print()
 
 
@@ -260,10 +284,11 @@ def getSiteUrlByTableName(tableName):
 
 
 def printLog(query, msg, executionTime):
-    print("========LOG=========")
-    print("QUERY: " + query + " \nEXECUTION TIME: " + str(executionTime) + " ns")
-    print("Query Status: " + msg)
-    print("====================")
+    print("==========================LOG==========================")
+    print("         QUERY : " + query)
+    print("Execution Time : " + str(executionTime) + " ns")
+    print("  Query Status : " + msg)
+    print("=======================================================")
 
 
 db = {}
@@ -284,9 +309,10 @@ isValid = json.loads(response.text)["isValid"]
 if isValid:
     query = "UPDATE student SET studentName= pankaj,studentEmail= pankaj@gmail.com WHERE studentId=1"
     query2 = "DELETE FROM customer WHERE customer_name= 'Jemis2'"
-    query3 = "UPDATE customer SET customer_name= 'hello',customer_address= 'Surat' WHERE customer_name='Jemis7'"
-    query4 = "INSERT INTO customer VALUES (Jemis, 140 Gautam Park)"
-    query5 = "SELECT customer_name FROM customer21 WHERE customer_name = 'Jemis6'"
+    query = "UPDATE customer21 SET customer_name= 'hello',customer_address= 'Surat' WHERE customer_name='Jemis7'"
+    query = "INSERT INTO customer VALUES ('Nikunj', 'Surat')"
+    query2 = "SELECT * FROM customer21"
+    query2 = "CREATE TABLE student (studentId string 25 PK, studentName string 25)"
     queryType = identifyQuery(query)
     if(queryType != INVALID_QUERY):
         startTime = time.time()
@@ -297,7 +323,7 @@ if isValid:
     else:
         print("Invalid Query Type")
 else:
-    print("ERROR: Invalid User")
+    print("ERROR -> Invalid User: " + str(username))
 
 # CREATE TABLE student (studentId string 25 PK, studentName string 25)
 # CREATE TABLE faculty (facultyId int 25 PK, facultyName string 25, facultyEmail string 25)

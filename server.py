@@ -19,7 +19,7 @@ def getStateOfDatabase():
             totalRows = 0
         else:
             totalRows = len(line.split("-->")[1].split("|"))
-        state.append("Table: " + tableName + " Total Rows: " + str(totalRows))
+        state.append([tableName, totalRows])
     return state
 
 
@@ -82,8 +82,6 @@ def dataToRaw(tableName, rowList):
     file = open("db1.txt", "w+")
     file.write(newContent)
 
-
-def isTableExist(tableName):
     file = open("dbmetadata.txt", "r+")
     for line in file:
         print("line", line)
@@ -95,38 +93,9 @@ def isTableExist(tableName):
     return False
 
 
-def verifyColumn(columnName, metadata):
-    data = metadata.split("|")
-    for index in range(len(data)):
-        existingColumn = data[index].split("->")[0]
-        print("1", existingColumn, "2", columnName)
-        if existingColumn == columnName:
-            return index
-    return -1
-
-
-def parseConditionIndex(condition, metadata):
-    columnName = condition.split("=")[0].strip(" ")
-    index = verifyColumn(columnName, metadata)
-    return index
-
-
-def updateTable(rowList, tableName, file):
-    print("In update table")
-    for line in file:
-        existingTableName = line.split("-->")[0]
-        print("tableNames", existingTableName, tableName)
-        if existingTableName == tableName:
-            newLine = tableName + "-->" + rowList
-            print("newLine", newLine)
-            file.write(newLine + "\n")
-        else:
-            file.write(line + "\n")
-
-
 @app.route('/')
 def hello():
-    return "Hello World updated 4!"
+    return "<h1>DBMS SERVER FOR GROUP 2</h1>"
 
 
 @app.route('/state')
@@ -148,13 +117,11 @@ def createTable():
     msg = ""
     isTableCreated = False
 
-    # startTime = time.time()
-    # time.sleep(3)
-    # print("diff", time.time() - startTime)
+    metaData = rawToMeta(tableName)
 
     file = open("dbmetadata.txt", "a+")
-    if(isTableExist(tableName)):
-        msg = "Table is Already exist"
+    if metaData:
+        msg = "ERROR -> Table is Already exist"
     else:
         file.write(tableName + ",PK->" + str(primaryKey) +
                    ",FK->null" + "-->" + columnMetas + "\n")
@@ -170,12 +137,39 @@ def createTable():
         file.write("\n")
         file.close()
         isTableCreated = True
-        msg = "Table Created Succussfully"
+        msg = "SUCCESS -> Table Created Succussfully"
 
     return flask.jsonify({
         "msg": msg,
         "isTableCreated": isTableCreated
     })
+
+
+@ app.route('/insert', methods=['POST'])
+def insertQuery():
+    request_data = request.get_json()
+    tableName = request_data["table_name"]
+    columnList = request_data["columnValues"]
+
+    meta = rawToMeta(tableName)
+    availableColoumns = list(meta["columns"].keys())
+    data = rawToData(tableName)
+    primaryKeyIndex = int(meta["primary_key"])
+
+    if len(columnList) != len(availableColoumns):
+        return "ERROR -> Column count is not matching with table: " + tableName + " Expected Column Count: " + str(len(availableColoumns))
+
+    if data:
+        for row in data:
+            if row[primaryKeyIndex] == columnList[primaryKeyIndex]:
+                return "ERROR -> Primary key must be unique, duplicate value found: " + str(row[primaryKeyIndex])
+        data.append(columnList)
+    else:
+        data = [columnList]
+
+    dataToRaw(tableName, data)
+
+    return "SUCCESS -> Record Inserted"
 
 
 @app.route("/update", methods=['POST'])
@@ -193,15 +187,15 @@ def updateQuery():
         requestedColumns = list(columnList.keys())
         for columnName in requestedColumns:
             if columnName not in availableColumns:
-                return "Invalid column name: " + columnName
+                return "ERROR -> Invalid column name: " + columnName
         conditionColumn = condition.split("=")[0].strip(" ")
         conditionValue = condition.split("=")[1].replace("'", "").strip(" ")
 
         if conditionColumn == None and conditionValue == None:
-            return "Invalid Condition: " + condition
+            return "ERROR -> Invalid Condition: " + condition
 
         if conditionColumn not in availableColumns:
-            return "Invalid condition column name: " + conditionColumn
+            return "ERROR -> Invalid condition column name: " + conditionColumn
         else:
             conditionIndex = availableColumns.index(conditionColumn)
             isUpdated = False
@@ -215,11 +209,11 @@ def updateQuery():
             dataToRaw(tableName, data)
 
             if isUpdated:
-                return "1 rows is updated in Table: " + tableName
+                return "SUCCESS -> 1 rows is updated in Table: " + tableName
             else:
-                return "No Record found with " + conditionColumn + " is " + conditionValue
+                return "ERROR -> No Record found with " + conditionColumn + " is " + conditionValue
     else:
-        return "Table not found with name: " + tableName
+        return "ERROR -> Table not found with name: " + tableName
 
 
 @ app.route('/select', methods=['POST'])
@@ -278,43 +272,14 @@ def selectQuery():
 
         data = {
             "columnNames": columnList,
-            "columnValues": values
+            "columnValues": values,
+            "isFetched": False if len(values) == 0 else True,
+            "msg": "Total " + str(len(values)) + " row(s) is/are fetched."
         }
     else:
         return "Table does not exist"
 
     return flask.jsonify(data)
-
-
-@ app.route('/insert', methods=['POST'])
-def insertQuery():
-    request_data = request.get_json()
-    tableName = request_data["table_name"]
-    columnList = request_data["columnValues"]
-
-    meta = rawToMeta(tableName)
-    availableColoumns = list(meta["columns"].keys())
-    data = rawToData(tableName)
-    primaryKeyIndex = int(meta["primary_key"])
-
-    if len(columnList) != len(availableColoumns):
-        return "Column count is not matching with table: " + tableName
-
-    print("data", data)
-
-    if data:
-        for row in data:
-            print("existing data: ",
-                  row[primaryKeyIndex], columnList[primaryKeyIndex])
-            if row[primaryKeyIndex] == columnList[primaryKeyIndex]:
-                return "Primary key must be unique"
-        data.append(columnList)
-    else:
-        data = [columnList]
-
-    dataToRaw(tableName, data)
-
-    return "Record Inserted"
 
 
 @app.route('/delete', methods=['POST'])
@@ -374,12 +339,4 @@ def isUserValid():
     return flask.jsonify(validity)
 
 
-# rowList = rawToData("customer1")
-# print(rowList)
-# rowList[0][0] = "nikunj"
-# # for rowIndex in range(len(rowList)):
-# #     rowList[rowIndex] = ",".join(rowList[rowIndex])
-# # rowList = "|".join(rowList)
-# dataToRaw("customer1", rowList)
-# print(rowList)
 app.run(debug=True, threaded=True)
