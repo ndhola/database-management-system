@@ -3,6 +3,7 @@ import requests
 import json
 import time
 from prettytable import PrettyTable
+from datetime import datetime
 
 INVALID_QUERY = "invalid query"
 BUSY_STATE = "busy"
@@ -57,8 +58,6 @@ def updateQuery(query):
 def selectQuery(query):
     matchGroups = re.match(
         "SELECT\s([\w\s,*\*?]+)\sFROM\s(\w*)\s?(WHERE)?\s?([\w\s]+=['\w\s]+)?", query)
-
-    print(matchGroups.groups())
 
     if matchGroups.group(3) == "WHERE" and matchGroups.group(2) == None:
         return "Condition is missing"
@@ -271,11 +270,14 @@ def getSiteUrlByInput(input):
         gdd.close()
 
 
-def addUserLog(userName, query, msg):
-    file = open("userLog.txt", "a+")
-    file.write("userName: " + userName + " Query: " +
-               query + " Message: " + msg + "\n")
-    file.close()
+def addUserLog(query, msg):
+    with open("userLog.txt", "a+") as file:
+        print("in file")
+        file = open("userLog.txt", "a+")
+        now = datetime.now()
+        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+        file.write(dt_string + " User Name: " + username + " Query: " +
+                   query + " Message: " + msg + "\n")
 
 
 def getSiteUrlByTableName(tableName):
@@ -292,13 +294,35 @@ def getSiteUrlByTableName(tableName):
 
 def printLog(query, msg, executionTime):
     print("==========================LOG==========================")
-    print("         QUERY : " + query)
+    print("         Query : " + query)
     print("Execution Time : " + str(executionTime) + " ns")
     print("  Query Status : " + msg)
     print("=======================================================")
 
 
-db = {}
+def executeQuery():
+    query = input("Enter Query: ")
+    queryType = identifyQuery(query.strip(" "))
+    if(queryType != INVALID_QUERY):
+        startTime = time.time()
+        processQuery = runParser(queryType, query)
+        msg = processQuery()
+        executionTime = time.time() - startTime
+        printLog(query, msg, executionTime)
+        addUserLog(query, msg)
+    else:
+        print("Invalid Query Type")
+
+
+def actionSwitcher(userInput):
+    switcher = {
+        "1": lambda: executeQuery(),
+        "2": lambda: getDump(),
+        "3": lambda: "Hello",
+        "4": lambda: exit()
+    }
+    return switcher.get(userInput, "Please enter input in between 1-4")
+
 
 username = input("username: ")
 password = input("password: ")
@@ -314,21 +338,13 @@ response = requests.post(SITE1_URL + "/validate", json=data)
 isValid = json.loads(response.text)["isValid"]
 
 if isValid:
-    query = "INSERT INTO grade VALUES (104, 5308, 2,'A+')"
-    query1 = "DELETE FROM customer WHERE customer_name= 'Jemis2'"
-    query2 = "UPDATE customer21 SET customer_name= 'hello',customer_address= 'Surat' WHERE customer_name='Jemis7'"
-    query3 = "INSERT INTO course VALUES (5508, 'Cloud Computing', 5)"
-    query4 = "SELECT * FROM course"
-    query5 = "CREATE TABLE student (studentId string 25 PK, studentName string 25)"
-    queryType = identifyQuery(query)
-    if(queryType != INVALID_QUERY):
-        startTime = time.time()
-        processQuery = runParser(queryType, query)
-        msg = processQuery()
-        executionTime = time.time() - startTime
-        printLog(query, msg, executionTime)
-        addUserLog(username, query, msg)
-    else:
-        print("Invalid Query Type")
+    while True:
+        print("1. Execute Query\n2. Create Dump\n3. Create User Log\n4. Exit")
+        userInput = input("Enter Action Number: ")
+        action = actionSwitcher(userInput)
+        try:
+            action()
+        except:
+            print("Please enter input in between 1-4")
 else:
     print("ERROR -> Invalid User: " + str(username))
