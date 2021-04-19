@@ -1,0 +1,1 @@
+CREATE TABLE employee (empID int 5 PK, empName string 20, empAddress string 15)

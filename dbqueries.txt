@@ -63,5 +63,12 @@ DELETE FROM faculty WHERE facultyName= 'andrew'
 DELETE FROM grade WHERE gradeId= 103
 
 
+CREATE TABLE employee (empID int 5 PK, empName string 20, empAddress string 15)
+INSERT INTO employee VALUES (1, 'john', 'alberta')
+INSERT INTO student VALUES (4, 'Jessy', 'jessy@gmail.com')
+UPDATE employee SET empName= 'pankaj',empAddress= 'pankaj@gmail.com' WHERE empID=1
+UPDATE student SET studentName= 'jessi' WHERE studentId=4
+DELETE FROM employee WHERE empID= 103
+
 
 
