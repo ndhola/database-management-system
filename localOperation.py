@@ -1,13 +1,3 @@
-from flask import Flask, request
-import flask
-import json
-from passlib.hash import bcrypt
-import time
-
-app = Flask(__name__)
-app.config["DEBUG"] = True
-
-
 def getStateOfDatabase():
     file = open("db1.txt", "r")
     state = []
@@ -77,7 +67,7 @@ def dataToRaw(tableName, rowList):
             newContent += newLine + "\n"
         else:
             newContent += line.replace("\n", "") + "\n"
-    print("newContent", newContent)
+    # print("newContent", newContent)
     file.close()
     file = open("db1.txt", "w+")
     file.write(newContent)
@@ -85,27 +75,8 @@ def dataToRaw(tableName, rowList):
     return False
 
 
-@app.route('/')
-def hello():
-    return "<h1>DBMS SERVER FOR GROUP 2</h1>"
-
-
-@app.route('/state')
-def getState():
-    data = getStateOfDatabase()
-    if data:
-        return flask.jsonify(data)
-    else:
-        return data
-
-
-@app.route('/create', methods=['POST'])
-def createTable():
-    request_data = request.get_json()
-    tableName = request_data["tableName"]
-    primaryKey = request_data["primary_key"]
-    columnMetas = "|".join(request_data["columnMetas"])
-    query = request_data["query"]
+def createTable(tableName, primaryKey, columnMetas, query):
+    columnMetas = "|".join(columnMetas)
     msg = ""
     isTableCreated = False
 
@@ -131,17 +102,13 @@ def createTable():
         isTableCreated = True
         msg = "SUCCESS -> Table Created Succussfully"
 
-    return flask.jsonify({
+    return {
         "msg": msg,
         "isTableCreated": isTableCreated
-    })
+    }
 
 
-@ app.route('/insert', methods=['POST'])
-def insertQuery():
-    request_data = request.get_json()
-    tableName = request_data["table_name"]
-    columnList = request_data["columnValues"]
+def insertQuery(tableName, columnList):
 
     meta = rawToMeta(tableName)
     availableColoumns = list(meta["columns"].keys())
@@ -164,12 +131,7 @@ def insertQuery():
     return "SUCCESS -> Record Inserted"
 
 
-@app.route("/update", methods=['POST'])
-def updateQuery():
-    request_data = request.get_json()
-    tableName = request_data["table_name"]
-    columnList = request_data["column_list"]
-    condition = request_data["condition"]
+def updateQuery(tableName, columnList, condition):
 
     metaData = rawToMeta(tableName)
     data = rawToData(tableName)
@@ -208,13 +170,7 @@ def updateQuery():
         return "ERROR -> Table not found with name: " + tableName
 
 
-@ app.route('/select', methods=['POST'])
-def selectQuery():
-    request_data = request.get_json()
-
-    tableName = request_data['table_name']
-    columnList = request_data['column_names']
-    condition = request_data["condition"]
+def selectQuery(tableName, columnList, condition):
 
     metaData = rawToMeta(tableName)
     data = rawToData(tableName)
@@ -267,20 +223,15 @@ def selectQuery():
             "columnNames": columnList,
             "columnValues": values,
             "isFetched": False if len(values) == 0 else True,
-            "msg": "SUCCESS -> Total " + str(len(values)) + " row(s) is/are fetched."
+            "msg": "Total " + str(len(values)) + " row(s) is/are fetched."
         }
     else:
-        return "ERROR -> Table does not exist"
+        return "Table does not exist"
 
-    return flask.jsonify(data)
+    return data
 
 
-@app.route('/delete', methods=['POST'])
-def deleteQuery():
-    request_data = request.get_json()
-    tableName = request_data["tableName"]
-    conditionColumn = request_data["columnName"].strip(" ")
-    conditionValue = request_data["columnValue"].replace("'", "").strip(" ")
+def deleteQuery(tableName, conditionColumn, conditionValue):
 
     metaData = rawToMeta(tableName)
     data = rawToData(tableName)
@@ -304,34 +255,9 @@ def deleteQuery():
     return "SUCCESS -> Record is deleted where column name: " + conditionColumn + " with value: " + conditionValue
 
 
-@app.route("/dump", methods=['GET'])
 def getDump():
     file = open("dump.txt")
     data = []
     for line in file:
         data.append(line)
-    return flask.jsonify(data)
-
-
-@app.route('/validate', methods=['POST'])
-def isUserValid():
-    isValid = False
-    request_data = request.get_json()
-    authentication = open('authentication.json')
-    users = json.load(authentication)["users"]
-
-    username = request_data["username"]
-    password = request_data["password"]
-
-    for user in users:
-        if(username == user["username"] and bcrypt.verify(password, user["password"])):
-            isValid = True
-
-    validity = {
-        "isValid": isValid
-    }
-
-    return flask.jsonify(validity)
-
-
-app.run(debug=True, threaded=True)
+    return data

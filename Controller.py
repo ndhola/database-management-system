@@ -4,9 +4,11 @@ import json
 import time
 from prettytable import PrettyTable
 from datetime import datetime
+import localOperation
 
 INVALID_QUERY = "invalid query"
 BUSY_STATE = "busy"
+LOCAL_DATABASE = "local_database"
 
 SITE1_URL = "http://35.225.117.133"
 SITE2_URL = "http://35.233.233.65"
@@ -26,8 +28,12 @@ def identifyQuery(query):
 def updateQuery(query):
     matchGroups = re.match(
         "UPDATE\s([\w]+)\sSET\s([\w\s=,\@\.\\+'\"]+)\s?(WHERE)\s([\w\s]+=['\w\s]+)", query)
+
+    if matchGroups == None:
+        return "ERROR -> Update Query is invalid"
+
     if matchGroups.group(3) == "WHERE" and matchGroups.group(2) == None:
-        return "Condition is missing"
+        return "ERROR -> Update Query is invalid"
 
     tableName = matchGroups.group(1)
     columns = matchGroups.group(2)
@@ -47,7 +53,10 @@ def updateQuery(query):
     }
 
     site_url = getSiteUrlByTableName(tableName)
-    if site_url:
+    if site_url == LOCAL_DATABASE:
+        msg = localOperation.updateQuery(tableName, columnList, condition)
+        return msg
+    elif site_url:
         response = requests.post(site_url + "/update", json=data)
         printStateOfDatabase(site_url)
     else:
@@ -59,7 +68,7 @@ def selectQuery(query):
     matchGroups = re.match(
         "SELECT\s([\w\s,*\*?]+)\sFROM\s(\w*)\s?(WHERE)?\s?([\w\s]+=['\w\s]+)?", query)
 
-    if matchGroups.group(3) == "WHERE" and matchGroups.group(2) == None:
+    if matchGroups.group(3) == "WHERE" and matchGroups.group(4) == None:
         return "Condition is missing"
 
     columnNames = matchGroups.group(1).split(",")
@@ -79,9 +88,13 @@ def selectQuery(query):
     site_url = getSiteUrlByTableName(tableName)
     if site_url:
         printStateOfDatabase(site_url)
-        response = requests.post(site_url + "/select", json=data)
-        try:
+        if site_url == LOCAL_DATABASE:
+            data = localOperation.selectQuery(
+                tableName, columnNames, condition)
+        else:
+            response = requests.post(site_url + "/select", json=data)
             data = json.loads(response.text)
+        try:
             isFetched = data["isFetched"]
             if isFetched:
                 table = PrettyTable(data["columnNames"])
@@ -116,7 +129,10 @@ def insertQuery(query):
 
     site_url = getSiteUrlByTableName(tableName)
 
-    if site_url:
+    if site_url == LOCAL_DATABASE:
+        msg = localOperation.insertQuery(tableName, column_values)
+        return msg
+    elif site_url:
         response = requests.post(site_url + "/insert", json=insertdata)
         printStateOfDatabase(site_url)
     else:
@@ -155,8 +171,12 @@ def createQuery(query):
 
     site_url = getSiteUrlByInput(siteIndex)
 
-    response = requests.post(site_url + "/create", json=createData)
-    response = json.loads(response.text)
+    if site_url == LOCAL_DATABASE:
+        response = localOperation.createTable(
+            tableName, createData["primary_key"], columnMetas, query)
+    else:
+        response = requests.post(site_url + "/create", json=createData)
+        response = json.loads(response.text)
 
     isTableCreated = response["isTableCreated"]
     msg = response["msg"]
@@ -183,19 +203,26 @@ def deleteQuery(query):
     }
 
     site_url = getSiteUrlByTableName(tableName)
-    if site_url:
-        printStateOfDatabase(site_url)
+    if site_url == LOCAL_DATABASE:
+        msg = localOperation.deleteQuery(tableName, columnName, columnValue)
+        return msg
+    elif site_url:
         response = requests.post(site_url + "/delete", json=deletedata)
         return response.text
     else:
         print("ERROR -> No site url found for this table: " + tableName)
 
+    printStateOfDatabase(site_url)
+
 
 def getDump():
     userInput = readSiteInput()
     site_url = getSiteUrlByInput(userInput)
-    response = requests.get(site_url + "/dump")
-    data = json.loads(response.text)
+    if site_url == LOCAL_DATABASE:
+        data = localOperation.getDump()
+    else:
+        response = requests.get(site_url + "/dump")
+        data = json.loads(response.text)
     fileName = input("Enter file name for dump: ")
     if fileName == "":
         fileName = "dump.txt"
@@ -235,8 +262,12 @@ def runParser(queryType, query):
 
 
 def printStateOfDatabase(siteUrl):
-    response = requests.get(siteUrl + "/state")
-    data = json.loads(response.text)
+    if siteUrl == LOCAL_DATABASE:
+        response = True
+        data = localOperation.getStateOfDatabase()
+    else:
+        response = requests.get(siteUrl + "/state")
+        data = json.loads(response.text)
     print()
     print("=======================EVENT LOG=======================")
     print("SITE URL: " + siteUrl + "\n")
@@ -385,7 +416,6 @@ data = {
     "username": username,
     "password": password
 }
-
 
 response = requests.post(SITE1_URL + "/validate", json=data)
 

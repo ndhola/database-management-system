@@ -5,6 +5,7 @@ TESTED QUERIES
 # CREATE TABLE faculty (facultyId int 25 PK, facultyName string 25, facultyEmail string 25)
 # CREATE TABLE course (courseId int 25 PK, courseName string 25, courseRating string 25)
 # CREATE TABLE grade (gradeId int 25 PK, courseId int 25, studentId int 25, grade string 25)
+# CREATE TABLE employee (empID int 5 PK, empName string 20, empAddress string 15)
 
 WRONG: # INSERT INTO student1 VALUES (1, 'jemis', 'jemis@gmail.com')
 WRONG: # INSERT INTO student VALUES (1, 'jemis', 'jemis@gmail.com', 'Surat')
@@ -20,6 +21,7 @@ WRONG: # INSERT INTO student VALUES (1, 'newUser', 'new@user.com')
 # INSERT INTO faculty VALUES (1, 'robert', 'robert@gmail.com')
 # INSERT INTO faculty VALUES (2, 'saurabh', 'saurabhgmailcom')
 # INSERT INTO faculty VALUES (3, 'andrew', 'andrew@gmail.com')
+# INSERT INTO employee VALUES (1, 'john', 'alberta')
 
 SELECT * FROM faculty
 
